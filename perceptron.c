@@ -9,9 +9,18 @@ perceptron *new_perceptron(int input_count, int *weights, int bias, double (*act
 	}
 	
 	tmp->input_count=input_count;
+
 	tmp->weights=malloc(sizeof(double)*input_count);
 	if(tmp->weights == NULL) {
 		//todo set errno
+		free(tmp);
+		return NULL;
+	}
+
+	tmp->inputs=malloc(sizeof(double)*input_count);
+	if(tmp->weights == NULL) {
+		//todo set errno
+		free(tmp->weights);
 		free(tmp);
 		return NULL;
 	}
@@ -37,13 +46,9 @@ void perceptron_free(perceptron *p) {
 }
 
 double perceptron_execute(perceptron *p, double *inputs) {
-	if(p == NULL || inputs == NULL) {
-		//todo set errno
-		return 0;
-	}
-
 	double sum = 0;	
 	for( int i = 0; i < p->input_count; ++i)  {
+		p->inputs[i] = inputs[i];
 		sum += p->weights[i]*inputs[i];
 	}
 	sum += p->bias;
@@ -53,7 +58,16 @@ double perceptron_execute(perceptron *p, double *inputs) {
 	return p->activation_result;
 }
 
+
+void perceptron_learn_step(perceptron *p, double learn_rate, double expected) {
+	for(int i = 0; i < p->input_count; ++i) {
+		p->weights[i] = p->weights[i] + learn_rate * (expected - p->activation_result)* p->inputs[i];
+	}
+	p->bias = p->bias + learn_rate * (expected - p->activation_result);
+}
+
 double activator_step(double x) {
 	return x >= 0 ? 1 : 0;
 }
+
 	
